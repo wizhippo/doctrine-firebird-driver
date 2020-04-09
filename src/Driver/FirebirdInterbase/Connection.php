@@ -15,6 +15,7 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
     const DEFAULT_BUFFERS = 0;
     const DEFAULT_IS_PERSISTENT = true;
     const DEFAULT_DIALECT = 0;
+    const ATTR_ROLE = 'role';
 
     /**
      * @var null|string
@@ -76,6 +77,11 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
     protected $attrAutoCommit = true;
 
     /**
+     * @var string Role
+     */
+    protected $role = null;
+
+    /**
      * @param string $params
      * @param null|string $username
      * @param null|string $password
@@ -134,6 +140,9 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
     public function setAttribute($attribute, $value)
     {
         switch ($attribute) {
+            case self::ATTR_ROLE:
+                $this->role = $value;
+                break;
             case AbstractFirebirdInterbaseDriver::ATTR_DOCTRINE_DEFAULT_TRANS_ISOLATION_LEVEL:
                 $this->attrDcTransIsolationLevel = $value;
                 break;
@@ -418,7 +427,8 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
                         $this->password,
                         $this->charset,
                         $this->buffers,
-                        $this->dialect
+                        $this->dialect,
+                        $this->role
                     );
                 } else {
                     $this->_ibaseConnectionRc = @ibase_connect(
@@ -427,7 +437,8 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
                         $this->password,
                         $this->charset,
                         $this->buffers,
-                        $this->dialect
+                        $this->dialect,
+                        $this->role
                     );
                 }
                 if (!is_resource($this->_ibaseConnectionRc)) {
