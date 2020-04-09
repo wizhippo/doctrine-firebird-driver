@@ -97,11 +97,17 @@ class Statement implements \IteratorAggregate, StatementInterface
     protected $namedParamsMap = [];
 
     /**
+     * @var boolean
+     */
+    private $convertUTF8 = false;
+
+    /**
      * @throws Exception
      */
-    public function __construct(Connection $connection, string $prepareString)
+    public function __construct(Connection $connection, string $prepareString, $convertUTF8 = false)
     {
         $this->connection = $connection;
+        $this->convertUTF8 = $convertUTF8;
         $this->setStatement($prepareString);
     }
 
@@ -499,7 +505,7 @@ class Statement implements \IteratorAggregate, StatementInterface
      */
     protected function internalFetchNum()
     {
-        return @ibase_fetch_row($this->ibaseResultRc, IBASE_TEXT);
+        return $this->convertCharsetNoneToUTF(@ibase_fetch_row($this->ibaseResultRc, IBASE_TEXT));
     }
 
     /**
@@ -571,7 +577,7 @@ class Statement implements \IteratorAggregate, StatementInterface
      */
     protected function internalFetchAssoc()
     {
-        return @ibase_fetch_assoc($this->ibaseResultRc, IBASE_TEXT);
+        return $this->convertCharsetNoneToUTF(@ibase_fetch_assoc($this->ibaseResultRc, IBASE_TEXT));
     }
 
     /**
@@ -580,7 +586,7 @@ class Statement implements \IteratorAggregate, StatementInterface
      */
     protected function internalFetchBoth()
     {
-        $tmpData = @ibase_fetch_assoc($this->ibaseResultRc, IBASE_TEXT);
+        $tmpData = $this->convertCharsetNoneToUTF(@ibase_fetch_assoc($this->ibaseResultRc, IBASE_TEXT));
         if (is_array($tmpData)) {
             return array_merge(array_values($tmpData), $tmpData);
         }
@@ -722,5 +728,26 @@ class Statement implements \IteratorAggregate, StatementInterface
             $convertedStatement .= substr($statement, $le);
             $this->statement = $convertedStatement;
         }
+    }
+
+    /**
+     * used when utf stored in charset none
+     *
+     * @param $row
+     *
+     * @return mixed
+     */
+    private function convertCharsetNoneToUTF($row)
+    {
+        if ($row !== false) {
+            foreach ($row as $key => &$value) {
+                // TODO:  May need to be more complete here for all datatypes
+                if (is_string($value)) {
+                    $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+                }
+            }
+        }
+
+        return $row;
     }
 }

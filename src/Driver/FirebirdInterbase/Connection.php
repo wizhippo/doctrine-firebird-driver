@@ -16,6 +16,7 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
     const DEFAULT_IS_PERSISTENT = true;
     const DEFAULT_DIALECT = 0;
     const ATTR_ROLE = 'role';
+    const ATTR_CONVERT_UTF8 = 'convertUTF8';
 
     /**
      * @var null|string
@@ -82,6 +83,11 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
     protected $role = null;
 
     /**
+     * @var boolean
+     */
+    private $convertUTF8 = false;
+
+    /**
      * @param string $params
      * @param null|string $username
      * @param null|string $password
@@ -143,6 +149,9 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
             case self::ATTR_ROLE:
                 $this->role = $value;
                 break;
+            case self::ATTR_CONVERT_UTF8:
+                $this->convertUTF8 = $value ?? false;;
+                break;
             case AbstractFirebirdInterbaseDriver::ATTR_DOCTRINE_DEFAULT_TRANS_ISOLATION_LEVEL:
                 $this->attrDcTransIsolationLevel = $value;
                 break;
@@ -201,7 +210,7 @@ class Connection implements ConnectionInterface, ServerInfoAwareConnection
      */
     public function prepare($prepareString)
     {
-        return new Statement($this, $prepareString);
+        return new Statement($this, $prepareString, $this->convertUTF8);
     }
 
     /**
