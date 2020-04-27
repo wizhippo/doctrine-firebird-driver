@@ -672,7 +672,7 @@ class FirebirdInterbasePlatform extends AbstractPlatform
      */
     public function getSequenceNextValFunctionSQL($sequenceName)
     {
-        return 'NEXT VALUE FOR ' . $sequenceName;
+        return 'GEN_ID(' . $sequenceName . ', 1)';
     }
 
     /**
